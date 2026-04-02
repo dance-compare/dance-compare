@@ -209,6 +209,7 @@ export default function VideoPlayer({
               className="w-full h-full object-contain"
               style={{ transform: `scale(${refZoom})`, transformOrigin: 'center center' }}
               playsInline
+              muted
               onLoadedMetadata={updateDimensions}
             />
             <PoseOverlay
@@ -240,6 +241,7 @@ export default function VideoPlayer({
               className="w-full h-full object-contain"
               style={{ transform: `scale(${userZoom})`, transformOrigin: 'center center' }}
               playsInline
+              muted
               onLoadedMetadata={updateDimensions}
             />
             <PoseOverlay

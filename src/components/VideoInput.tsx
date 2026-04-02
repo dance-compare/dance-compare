@@ -134,6 +134,7 @@ export default function VideoInput({ label, sublabel, accentColor, onVideoReady,
             ref={videoRef}
             src={videoUrl}
             controls
+            playsInline
             onLoadedMetadata={handleVideoLoaded}
             className={`w-full rounded-xl bg-black border ${a.border}`}
             crossOrigin="anonymous"
