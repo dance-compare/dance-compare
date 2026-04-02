@@ -138,7 +138,7 @@ function App() {
         </div>
       </header>
 
-      <main className="max-w-6xl mx-auto px-4 py-8">
+      <main className="max-w-6xl mx-auto px-4 py-8 overflow-hidden">
         {/* Hidden persistent video elements */}
         <div className={state === 'input' ? '' : 'hidden'}>
           <div className="flex flex-col gap-8">

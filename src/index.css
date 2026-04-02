@@ -18,6 +18,7 @@ body {
   background: var(--color-dark-900);
   color: #e0e0f0;
   font-family: 'Inter', 'Hiragino Kaku Gothic ProN', 'Noto Sans JP', system-ui, sans-serif;
+  overflow-x: hidden;
 }
 
 /* Animated gradient background */
