@@ -53,7 +53,7 @@ export default function ResultView({ result }: ResultViewProps) {
   const offset = circumference - (result.overallScore / 100) * circumference;
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-4 sm:gap-6 overflow-hidden">
       {/* Overall score with ring */}
       <div className="flex flex-col items-center py-6 sm:py-8">
         <div className="relative w-32 h-32 sm:w-40 sm:h-40">
@@ -195,13 +195,13 @@ export default function ResultView({ result }: ResultViewProps) {
       )}
 
       {/* Timeline */}
-      <div className="bg-dark-800 rounded-2xl border border-dark-600 p-5">
+      <div className="bg-dark-800 rounded-2xl border border-dark-600 p-3 sm:p-5 overflow-hidden">
         <h3 className="text-xs font-bold tracking-[0.15em] text-dark-500 mb-3">TIMELINE</h3>
-        <div className="flex items-end gap-px h-20">
+        <div className="flex items-end h-16 sm:h-20 overflow-hidden">
           {result.frameDiffs.map((f, i) => (
             <div
               key={i}
-              className={`flex-1 min-w-[2px] rounded-t ${getTimelineColor(f.score)}`}
+              className={`flex-1 min-w-0 ${getTimelineColor(f.score)}`}
               style={{ height: `${f.score}%`, opacity: 0.5 + (f.score / 100) * 0.5 }}
               title={`${Math.floor(f.time / 60)}:${String(Math.floor(f.time % 60)).padStart(2, '0')} - ${Math.round(f.score)}点`}
             />
