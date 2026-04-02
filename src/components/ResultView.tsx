@@ -55,8 +55,8 @@ export default function ResultView({ result }: ResultViewProps) {
   return (
     <div className="flex flex-col gap-6">
       {/* Overall score with ring */}
-      <div className="flex flex-col items-center py-8">
-        <div className="relative w-40 h-40">
+      <div className="flex flex-col items-center py-6 sm:py-8">
+        <div className="relative w-32 h-32 sm:w-40 sm:h-40">
           <svg className="w-full h-full -rotate-90" viewBox="0 0 100 100">
             <circle cx="50" cy="50" r={radius} fill="none" stroke="#1a1a2e" strokeWidth="6" />
             <circle
@@ -81,7 +81,7 @@ export default function ResultView({ result }: ResultViewProps) {
             </defs>
           </svg>
           <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <span className={`text-4xl font-black bg-gradient-to-b ${getScoreGradient(result.overallScore)} bg-clip-text text-transparent ${getScoreGlow(result.overallScore)}`}>
+            <span className={`text-3xl sm:text-4xl font-black bg-gradient-to-b ${getScoreGradient(result.overallScore)} bg-clip-text text-transparent ${getScoreGlow(result.overallScore)}`}>
               {result.overallScore}
             </span>
             <span className="text-[10px] text-dark-500 tracking-widest">SCORE</span>
@@ -93,8 +93,8 @@ export default function ResultView({ result }: ResultViewProps) {
       </div>
 
       {/* Body part scores */}
-      <div className="bg-dark-800 rounded-2xl border border-dark-600 p-5">
-        <h3 className="text-xs font-bold tracking-[0.15em] text-dark-500 mb-4">BODY PARTS</h3>
+      <div className="bg-dark-800 rounded-2xl border border-dark-600 p-3 sm:p-5">
+        <h3 className="text-xs font-bold tracking-[0.15em] text-dark-500 mb-3 sm:mb-4">BODY PARTS</h3>
         <div className="flex flex-col gap-3">
           {result.bodyPartScores.map((bp) => (
             <div key={bp.name} className="flex items-center gap-3">

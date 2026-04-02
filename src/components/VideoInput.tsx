@@ -161,10 +161,10 @@ export default function VideoInput({ label, sublabel, accentColor, onVideoReady,
 
               {/* Multiple expanding rings */}
               {[
-                { size: 'w-40 h-40', color: sparkleColor.main, delay: '0s', width: '4px' },
-                { size: 'w-32 h-32', color: sparkleColor.sub, delay: '0.12s', width: '3px' },
-                { size: 'w-48 h-48', color: sparkleColor.third, delay: '0.25s', width: '2px' },
-                { size: 'w-24 h-24', color: sparkleColor.main, delay: '0.35s', width: '3px' },
+                { size: 'w-24 h-24 sm:w-40 sm:h-40', color: sparkleColor.main, delay: '0s', width: '4px' },
+                { size: 'w-20 h-20 sm:w-32 sm:h-32', color: sparkleColor.sub, delay: '0.12s', width: '3px' },
+                { size: 'w-28 h-28 sm:w-48 sm:h-48', color: sparkleColor.third, delay: '0.25s', width: '2px' },
+                { size: 'w-16 h-16 sm:w-24 sm:h-24', color: sparkleColor.main, delay: '0.35s', width: '3px' },
               ].map((ring, i) => (
                 <div
                   key={`ring-${i}`}
@@ -175,7 +175,7 @@ export default function VideoInput({ label, sublabel, accentColor, onVideoReady,
 
               {/* Center star burst — big */}
               <div
-                className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-6xl animate-sparkle-star"
+                className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-4xl sm:text-6xl animate-sparkle-star"
                 style={{ color: sparkleColor.main, filter: `drop-shadow(0 0 12px ${sparkleColor.main})` }}
               >
                 ✦
@@ -266,7 +266,7 @@ export default function VideoInput({ label, sublabel, accentColor, onVideoReady,
           onDrop={handleDrop}
           onDragOver={(e) => e.preventDefault()}
           onClick={() => fileInputRef.current?.click()}
-          className={`border border-dashed border-dark-500 rounded-xl p-8 text-center cursor-pointer ${a.hoverBorder} hover:bg-gradient-to-b ${a.bg} transition-all min-h-[180px] flex flex-col items-center justify-center gap-3`}
+          className={`border border-dashed border-dark-500 rounded-xl p-5 sm:p-8 text-center cursor-pointer ${a.hoverBorder} hover:bg-gradient-to-b ${a.bg} transition-all min-h-[130px] sm:min-h-[180px] flex flex-col items-center justify-center gap-2 sm:gap-3`}
         >
           <div className={`text-3xl ${a.icon}`}>
             <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">

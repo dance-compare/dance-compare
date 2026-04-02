@@ -189,7 +189,7 @@ export default function VideoPlayer({
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
         {/* Reference video */}
         <div>
           <div className="flex items-center justify-between mb-2">
@@ -255,19 +255,19 @@ export default function VideoPlayer({
       </div>
 
       {/* Controls panel */}
-      <div className="bg-dark-800 rounded-xl border border-dark-600 p-4 flex flex-col gap-4">
+      <div className="bg-dark-800 rounded-xl border border-dark-600 p-3 sm:p-4 flex flex-col gap-3 sm:gap-4">
         {/* Speed control */}
         <div>
           <div className="flex items-center justify-between mb-2">
             <span className="text-xs font-bold tracking-[0.15em] text-dark-500">SPEED</span>
             <span className="text-xs text-gray-400 font-mono">{playbackSpeed}x</span>
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-1.5 sm:gap-2">
             {SPEED_OPTIONS.map((speed) => (
               <button
                 key={speed}
                 onClick={() => setPlaybackSpeed(speed)}
-                className={`flex-1 py-1.5 rounded-lg text-xs font-bold tracking-wider transition-all ${
+                className={`flex-1 py-1 sm:py-1.5 rounded-lg text-[10px] sm:text-xs font-bold tracking-wider transition-all ${
                   playbackSpeed === speed
                     ? 'bg-neon-purple/30 text-neon-purple border border-neon-purple/50'
                     : 'bg-dark-700 text-dark-500 border border-dark-600 hover:text-gray-300 hover:border-dark-500'
@@ -314,13 +314,13 @@ export default function VideoPlayer({
         <div className="flex gap-3">
           <button
             onClick={resetVideos}
-            className="px-4 py-3 rounded-xl font-bold text-sm tracking-wider bg-dark-600 text-gray-400 border border-dark-500 hover:border-neon-blue/50 hover:text-neon-blue transition-all"
+            className="px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl font-bold text-xs sm:text-sm tracking-wider bg-dark-600 text-gray-400 border border-dark-500 hover:border-neon-blue/50 hover:text-neon-blue transition-all"
           >
             RESET
           </button>
           <button
             onClick={togglePlay}
-            className={`px-8 py-3 rounded-xl font-bold text-sm tracking-wider transition-all ${
+            className={`px-6 sm:px-8 py-2.5 sm:py-3 rounded-xl font-bold text-xs sm:text-sm tracking-wider transition-all ${
               isPlaying
                 ? 'bg-dark-600 text-gray-300 border border-dark-500 hover:border-neon-pink/50'
                 : 'bg-gradient-to-r from-neon-pink to-neon-purple text-white glow-pink hover:scale-105 active:scale-95'
@@ -329,7 +329,7 @@ export default function VideoPlayer({
             {isPlaying ? 'PAUSE' : 'PLAY'}
           </button>
         </div>
-        <div className="flex gap-4 text-[10px] tracking-wider">
+        <div className="flex flex-wrap justify-center gap-3 sm:gap-4 text-[10px] tracking-wider">
           <span className="text-neon-green">GREEN = お手本</span>
           <span className="text-neon-blue">BLUE = あなた</span>
           <span className="text-neon-pink">PINK = ズレが大きい部分</span>

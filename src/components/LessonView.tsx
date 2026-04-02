@@ -798,7 +798,7 @@ export default function LessonView({
             </p>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 gap-2 sm:gap-3">
             {LEVELS.map((lv, i) => {
               const isSelected = levelIdx === i;
               const colorStyles: Record<string, { border: string; bg: string; text: string }> = {
@@ -828,14 +828,14 @@ export default function LessonView({
                 <button
                   key={lv.id}
                   onClick={() => setLevelIdx(i)}
-                  className={`p-4 rounded-xl border-2 transition-all text-left ${
+                  className={`p-2.5 sm:p-4 rounded-xl border-2 transition-all text-left ${
                     isSelected
                       ? `${cs.border} ${cs.bg}`
                       : 'border-dark-600 bg-dark-800 hover:border-dark-500'
                   }`}
                 >
                   <div className="flex items-center gap-2 mb-2">
-                    <span className="text-2xl">{lv.icon}</span>
+                    <span className="text-xl sm:text-2xl">{lv.icon}</span>
                     <div>
                       <div className={`text-xs font-bold tracking-wider ${
                         isSelected ? cs.text : 'text-gray-400'
@@ -859,7 +859,7 @@ export default function LessonView({
 
           <button
             onClick={startLesson}
-            className="mx-auto px-10 py-4 rounded-2xl text-lg font-bold tracking-wide bg-gradient-to-r from-neon-pink via-neon-purple to-neon-blue text-white glow-pink hover:scale-105 active:scale-95 transition-all"
+            className="mx-auto px-8 sm:px-10 py-3 sm:py-4 rounded-2xl text-base sm:text-lg font-bold tracking-wide bg-gradient-to-r from-neon-pink via-neon-purple to-neon-blue text-white glow-pink hover:scale-105 active:scale-95 transition-all"
           >
             START LESSON
           </button>
@@ -929,18 +929,18 @@ export default function LessonView({
 
                 {/* Advice ribbon at bottom of video */}
                 <div className="absolute bottom-0 left-0 right-0 animate-slide-in pointer-events-none">
-                  <div className="bg-gradient-to-t from-dark-900/95 via-dark-900/80 to-transparent px-5 pt-8 pb-4">
-                    <div className="flex items-center gap-3 mb-1.5">
+                  <div className="bg-gradient-to-t from-dark-900/95 via-dark-900/80 to-transparent px-3 sm:px-5 pt-6 sm:pt-8 pb-3 sm:pb-4">
+                    <div className="flex items-center gap-2 sm:gap-3 mb-1">
                       {currentStop.worstParts.length > 0 && (
-                        <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-neon-pink/20 text-neon-pink border border-neon-pink/30 flex-shrink-0">
+                        <span className="text-[10px] sm:text-xs font-bold px-2 sm:px-2.5 py-0.5 rounded-full bg-neon-pink/20 text-neon-pink border border-neon-pink/30 flex-shrink-0">
                           {currentStop.worstParts[0]}
                         </span>
                       )}
-                      <span className="text-xl md:text-2xl font-black text-white text-glow-pink tracking-wide">
+                      <span className="text-base sm:text-xl md:text-2xl font-black text-white text-glow-pink tracking-wide">
                         {currentStop.advice.main}
                       </span>
                     </div>
-                    <div className="text-base text-gray-300 font-medium">
+                    <div className="text-sm sm:text-base text-gray-300 font-medium">
                       {currentStop.advice.sub}
                     </div>
                   </div>
@@ -994,12 +994,12 @@ export default function LessonView({
 
       {/* ── Completion Screen ── */}
       {phase === 'complete' && (
-        <div className="flex flex-col items-center gap-6 py-8">
-          <div className="text-6xl">
+        <div className="flex flex-col items-center gap-4 sm:gap-6 py-6 sm:py-8">
+          <div className="text-5xl sm:text-6xl">
             {stopsCompleted === 0 ? '👑' : stopsCompleted <= 2 ? '⭐' : '🔥'}
           </div>
           <div className="text-center">
-            <h3 className="text-2xl font-black bg-gradient-to-r from-neon-pink via-neon-purple to-neon-blue bg-clip-text text-transparent mb-2">
+            <h3 className="text-xl sm:text-2xl font-black bg-gradient-to-r from-neon-pink via-neon-purple to-neon-blue bg-clip-text text-transparent mb-2">
               LESSON COMPLETE!
             </h3>
             <p className="text-sm text-gray-400">

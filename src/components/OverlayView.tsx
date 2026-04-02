@@ -329,12 +329,12 @@ export default function OverlayView({
       </div>
 
       {/* Controls */}
-      <div className="bg-dark-800 rounded-xl border border-dark-600 p-4 flex flex-col gap-3">
+      <div className="bg-dark-800 rounded-xl border border-dark-600 p-3 sm:p-4 flex flex-col gap-2.5 sm:gap-3">
         {/* Toggle layers */}
-        <div className="flex gap-3">
+        <div className="flex gap-2 sm:gap-3">
           <button
             onClick={() => setShowRef(!showRef)}
-            className={`flex-1 py-2 rounded-lg text-xs font-bold tracking-wider border transition-all ${
+            className={`flex-1 py-1.5 sm:py-2 rounded-lg text-[10px] sm:text-xs font-bold tracking-wider border transition-all ${
               showRef
                 ? 'bg-neon-green/20 text-neon-green border-neon-green/50'
                 : 'bg-dark-700 text-dark-500 border-dark-600'
@@ -344,7 +344,7 @@ export default function OverlayView({
           </button>
           <button
             onClick={() => setShowUser(!showUser)}
-            className={`flex-1 py-2 rounded-lg text-xs font-bold tracking-wider border transition-all ${
+            className={`flex-1 py-1.5 sm:py-2 rounded-lg text-[10px] sm:text-xs font-bold tracking-wider border transition-all ${
               showUser
                 ? 'bg-neon-blue/20 text-neon-blue border-neon-blue/50'
                 : 'bg-dark-700 text-dark-500 border-dark-600'
@@ -388,12 +388,12 @@ export default function OverlayView({
         </div>
 
         {/* Speed */}
-        <div className="flex gap-2">
+        <div className="flex gap-1.5 sm:gap-2">
           {SPEED_OPTIONS.map((s) => (
             <button
               key={s}
               onClick={() => setSpeed(s)}
-              className={`flex-1 py-1.5 rounded-lg text-xs font-bold tracking-wider transition-all ${
+              className={`flex-1 py-1 sm:py-1.5 rounded-lg text-[10px] sm:text-xs font-bold tracking-wider transition-all ${
                 speed === s
                   ? 'bg-neon-purple/30 text-neon-purple border border-neon-purple/50'
                   : 'bg-dark-700 text-dark-500 border border-dark-600'
@@ -409,7 +409,7 @@ export default function OverlayView({
       <div className="flex justify-center">
         <button
           onClick={togglePlay}
-          className={`px-8 py-3 rounded-xl font-bold text-sm tracking-wider transition-all ${
+          className={`px-6 sm:px-8 py-2.5 sm:py-3 rounded-xl font-bold text-xs sm:text-sm tracking-wider transition-all ${
             isPlaying
               ? 'bg-dark-600 text-gray-300 border border-dark-500'
               : 'bg-gradient-to-r from-neon-purple to-neon-pink text-white glow-purple hover:scale-105 active:scale-95'
@@ -420,7 +420,7 @@ export default function OverlayView({
       </div>
 
       {/* Legend */}
-      <div className="flex justify-center gap-6 text-[10px] tracking-wider">
+      <div className="flex flex-wrap justify-center gap-3 sm:gap-6 text-[10px] tracking-wider">
         <span className="text-neon-green">GREEN = お手本</span>
         <span className="text-neon-blue">BLUE = あなた</span>
         <span className="text-neon-pink">PINK = ズレ</span>

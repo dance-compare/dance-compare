@@ -143,7 +143,7 @@ function App() {
         <div className={state === 'input' ? '' : 'hidden'}>
           <div className="flex flex-col gap-8">
             <div className="text-center py-6">
-              <h2 className="text-3xl font-bold mb-3">
+              <h2 className="text-2xl sm:text-3xl font-bold mb-3">
                 <span className="bg-gradient-to-r from-neon-pink to-neon-purple bg-clip-text text-transparent text-glow-pink">
                   Level Up
                 </span>
@@ -154,7 +154,7 @@ function App() {
               </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
               <VideoInput
                 label="REFERENCE"
                 sublabel="お手本動画"
@@ -175,7 +175,7 @@ function App() {
               <button
                 onClick={startAnalysis}
                 disabled={!refReady || !userReady}
-                className={`group relative px-10 py-4 rounded-2xl text-lg font-bold tracking-wide transition-all duration-300 ${
+                className={`group relative px-6 sm:px-10 py-3 sm:py-4 rounded-2xl text-base sm:text-lg font-bold tracking-wide transition-all duration-300 ${
                   refReady && userReady
                     ? 'bg-gradient-to-r from-neon-pink via-neon-purple to-neon-blue text-white glow-pink hover:scale-105 active:scale-95'
                     : 'bg-dark-700 text-dark-500 cursor-not-allowed'
