@@ -1,6 +1,6 @@
 import { useRef, useState, useEffect, useCallback, useMemo } from 'react';
 import type { PoseData } from '../types/pose';
-import type { PoseFrame, Landmark } from '../types/pose';
+import type { PoseFrame } from '../types/pose';
 import { POSE_CONNECTIONS } from '../types/pose';
 import {
   computeAverageBoneLengths,

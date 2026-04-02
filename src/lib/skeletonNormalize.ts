@@ -32,13 +32,6 @@ const SECONDARY_CHAINS: [number, number][] = [
   [28, 30], [30, 32],
 ];
 
-function dist3d(a: Landmark, b: Landmark): number {
-  const dx = a.x - b.x;
-  const dy = a.y - b.y;
-  const dz = a.z - b.z;
-  return Math.sqrt(dx * dx + dy * dy + dz * dz);
-}
-
 function dist2d(a: Landmark, b: Landmark): number {
   const dx = a.x - b.x;
   const dy = a.y - b.y;
@@ -109,12 +102,6 @@ export function retargetFrame(
   const out: PoseFrame = frame.map((lm) => ({ ...lm }));
 
   // Center on hip midpoint
-  const cx = (lh.x + rh.x) / 2;
-  const cy = (lh.y + rh.y) / 2;
-
-  // Adjust hip positions to target hip width
-  const currentHipHalfWidth = dist2d(lh, rh) / 2;
-  const targetLeftHipDist = targetBones[boneKey(23, 11)] ? undefined : undefined; // hips don't have a direct entry
   // For hips, we keep them as-is relative to center (hip width scales with overall body)
 
   // Process main bone segments in order

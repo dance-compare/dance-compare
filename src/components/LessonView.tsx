@@ -1,6 +1,6 @@
 import { useRef, useState, useEffect, useCallback, useMemo } from 'react';
-import type { PoseData, PoseFrame, ComparisonResult, Landmark } from '../types/pose';
-import { POSE_CONNECTIONS, JOINT_ANGLES, BODY_PARTS } from '../types/pose';
+import type { PoseData, PoseFrame, ComparisonResult } from '../types/pose';
+import { POSE_CONNECTIONS, JOINT_ANGLES } from '../types/pose';
 
 interface LessonViewProps {
   userPose: PoseData;
@@ -175,15 +175,6 @@ function extractAngles(frame: PoseFrame): number[] {
     return angleBetween(frame[a], frame[b], frame[c]);
   });
 }
-
-// ── Body part to landmark mapping ──
-const BODY_PART_LANDMARKS: Record<string, number[]> = {
-  '左腕': [11, 13, 15],
-  '右腕': [12, 14, 16],
-  '体幹': [11, 12, 23, 24],
-  '左脚': [23, 25, 27],
-  '右脚': [24, 26, 28],
-};
 
 // Highlight landmark pairs per joint angle index
 const HIGHLIGHT_LANDMARKS: number[][] = [
@@ -476,7 +467,7 @@ export default function LessonView({
   const [phase, setPhase] = useState<Phase>('select');
   const [levelIdx, setLevelIdx] = useState(0);
   const [currentStopIdx, setCurrentStopIdx] = useState(0);
-  const [currentUserFrame, setCurrentUserFrame] = useState(0);
+  const [, setCurrentUserFrame] = useState(0);
   const [showAdvice, setShowAdvice] = useState(false);
   const [stopsCompleted, setStopsCompleted] = useState(0);
 
