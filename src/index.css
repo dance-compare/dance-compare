@@ -6,11 +6,12 @@
   --color-neon-blue: #00d4ff;
   --color-neon-green: #00ff88;
   --color-neon-yellow: #ffe600;
+  --color-neon-orange: #ff8800;
   --color-dark-900: #0a0a0f;
   --color-dark-800: #12121a;
   --color-dark-700: #1a1a2e;
   --color-dark-600: #252540;
-  --color-dark-500: #3a3a5c;
+  --color-dark-500: #7a7a9e;
 }
 
 body {

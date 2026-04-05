@@ -1,3 +1,4 @@
+import { useState, useMemo } from 'react';
 import type { ComparisonResult } from '../types/pose';
 
 interface ResultViewProps {
@@ -39,6 +40,174 @@ function getTimelineColor(score: number): string {
   if (score >= 70) return 'bg-neon-blue';
   if (score >= 50) return 'bg-neon-yellow';
   return 'bg-neon-pink';
+}
+
+function TimelineSection({ frameDiffs }: { frameDiffs: ComparisonResult['frameDiffs'] }) {
+  const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
+
+  // Compute section averages (split into quarters)
+  const sectionStats = useMemo(() => {
+    if (frameDiffs.length === 0) return [];
+    const sectionCount = Math.min(4, frameDiffs.length);
+    const sectionSize = Math.ceil(frameDiffs.length / sectionCount);
+    const sections = [];
+    for (let i = 0; i < sectionCount; i++) {
+      const start = i * sectionSize;
+      const end = Math.min(start + sectionSize, frameDiffs.length);
+      const slice = frameDiffs.slice(start, end);
+      const avg = Math.round(slice.reduce((s, f) => s + f.score, 0) / slice.length);
+      const startTime = frameDiffs[start].time;
+      const endTime = frameDiffs[end - 1].time;
+      sections.push({ avg, startTime, endTime });
+    }
+    return sections;
+  }, [frameDiffs]);
+
+  // Score distribution
+  const distribution = useMemo(() => {
+    const counts = { excellent: 0, good: 0, fair: 0, poor: 0 };
+    for (const f of frameDiffs) {
+      if (f.score >= 90) counts.excellent++;
+      else if (f.score >= 70) counts.good++;
+      else if (f.score >= 50) counts.fair++;
+      else counts.poor++;
+    }
+    const total = frameDiffs.length || 1;
+    return {
+      excellent: Math.round((counts.excellent / total) * 100),
+      good: Math.round((counts.good / total) * 100),
+      fair: Math.round((counts.fair / total) * 100),
+      poor: Math.round((counts.poor / total) * 100),
+    };
+  }, [frameDiffs]);
+
+  const hoveredFrame = hoveredIdx !== null ? frameDiffs[hoveredIdx] : null;
+
+  return (
+    <div className="bg-dark-800 rounded-2xl border border-dark-600 p-3 sm:p-5 overflow-hidden">
+      <div className="flex items-center justify-between mb-3">
+        <h3 className="text-xs font-bold tracking-[0.15em] text-dark-500">TIMELINE</h3>
+        {hoveredFrame ? (
+          <div className="flex items-center gap-2">
+            <span className="text-[11px] font-mono text-dark-500">
+              {Math.floor(hoveredFrame.time / 60)}:{String(Math.floor(hoveredFrame.time % 60)).padStart(2, '0')}
+            </span>
+            <span className={`text-sm font-bold tabular-nums ${
+              hoveredFrame.score >= 90 ? 'text-neon-green' :
+              hoveredFrame.score >= 70 ? 'text-neon-blue' :
+              hoveredFrame.score >= 50 ? 'text-neon-yellow' : 'text-neon-pink'
+            }`}>
+              {Math.round(hoveredFrame.score)}%
+            </span>
+            {hoveredFrame.worstParts.length > 0 && (
+              <span className="text-[10px] text-dark-500">
+                {hoveredFrame.worstParts.join(', ')}
+              </span>
+            )}
+          </div>
+        ) : (
+          <span className="text-[11px] text-dark-500">hover for details</span>
+        )}
+      </div>
+
+      {/* Timeline bars */}
+      <div
+        className="flex items-end h-20 sm:h-24 gap-px rounded overflow-hidden"
+        onMouseLeave={() => setHoveredIdx(null)}
+      >
+        {frameDiffs.map((f, i) => {
+          const isHovered = hoveredIdx === i;
+          return (
+            <div
+              key={i}
+              className="flex-1 min-w-0 rounded-t-sm transition-all cursor-pointer"
+              style={{
+                height: `${f.score}%`,
+                opacity: hoveredIdx !== null ? (isHovered ? 1 : 0.3) : 0.5 + (f.score / 100) * 0.5,
+                backgroundColor:
+                  f.score >= 90 ? '#00ff88' :
+                  f.score >= 70 ? '#00d4ff' :
+                  f.score >= 50 ? '#ffe600' : '#ff2d78',
+                transform: isHovered ? 'scaleX(2.5)' : 'scaleX(1)',
+              }}
+              onMouseEnter={() => setHoveredIdx(i)}
+            />
+          );
+        })}
+      </div>
+
+      {/* Time labels */}
+      <div className="flex justify-between text-[10px] text-dark-500 mt-2 font-mono">
+        <span>0:00</span>
+        <span>
+          {frameDiffs.length > 0
+            ? `${Math.floor(frameDiffs[frameDiffs.length - 1].time / 60)}:${String(Math.floor(frameDiffs[frameDiffs.length - 1].time % 60)).padStart(2, '0')}`
+            : '0:00'}
+        </span>
+      </div>
+
+      {/* Section averages */}
+      {sectionStats.length > 0 && (
+        <div className="grid gap-2 mt-4" style={{ gridTemplateColumns: `repeat(${sectionStats.length}, 1fr)` }}>
+          {sectionStats.map((sec, i) => (
+            <div key={i} className="bg-dark-700 rounded-lg p-2 text-center">
+              <div className={`text-base sm:text-lg font-black tabular-nums ${
+                sec.avg >= 90 ? 'text-neon-green' :
+                sec.avg >= 70 ? 'text-neon-blue' :
+                sec.avg >= 50 ? 'text-neon-yellow' : 'text-neon-pink'
+              }`}>
+                {sec.avg}%
+              </div>
+              <div className="text-[9px] text-dark-500 font-mono mt-0.5">
+                {Math.floor(sec.startTime / 60)}:{String(Math.floor(sec.startTime % 60)).padStart(2, '0')}
+                {' - '}
+                {Math.floor(sec.endTime / 60)}:{String(Math.floor(sec.endTime % 60)).padStart(2, '0')}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Score distribution bar */}
+      <div className="mt-4">
+        <div className="flex items-center gap-1.5 mb-1.5">
+          <span className="text-[10px] font-bold tracking-[0.1em] text-dark-500">DISTRIBUTION</span>
+        </div>
+        <div className="flex h-2.5 rounded-full overflow-hidden">
+          {distribution.excellent > 0 && (
+            <div className="bg-neon-green transition-all" style={{ width: `${distribution.excellent}%` }} />
+          )}
+          {distribution.good > 0 && (
+            <div className="bg-neon-blue transition-all" style={{ width: `${distribution.good}%` }} />
+          )}
+          {distribution.fair > 0 && (
+            <div className="bg-neon-yellow transition-all" style={{ width: `${distribution.fair}%` }} />
+          )}
+          {distribution.poor > 0 && (
+            <div className="bg-neon-pink transition-all" style={{ width: `${distribution.poor}%` }} />
+          )}
+        </div>
+        <div className="flex gap-3 mt-2 justify-center flex-wrap">
+          <span className="flex items-center gap-1 text-[10px] text-dark-500">
+            <span className="w-2 h-2 rounded-full bg-neon-green" />
+            90%+ ({distribution.excellent}%)
+          </span>
+          <span className="flex items-center gap-1 text-[10px] text-dark-500">
+            <span className="w-2 h-2 rounded-full bg-neon-blue" />
+            70-89% ({distribution.good}%)
+          </span>
+          <span className="flex items-center gap-1 text-[10px] text-dark-500">
+            <span className="w-2 h-2 rounded-full bg-neon-yellow" />
+            50-69% ({distribution.fair}%)
+          </span>
+          <span className="flex items-center gap-1 text-[10px] text-dark-500">
+            <span className="w-2 h-2 rounded-full bg-neon-pink" />
+            &lt;50% ({distribution.poor}%)
+          </span>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 export default function ResultView({ result }: ResultViewProps) {
@@ -194,27 +363,8 @@ export default function ResultView({ result }: ResultViewProps) {
         </div>
       )}
 
-      {/* Timeline */}
-      <div className="bg-dark-800 rounded-2xl border border-dark-600 p-3 sm:p-5 overflow-hidden">
-        <h3 className="text-xs font-bold tracking-[0.15em] text-dark-500 mb-3">TIMELINE</h3>
-        <div className="flex items-end h-16 sm:h-20 overflow-hidden">
-          {result.frameDiffs.map((f, i) => (
-            <div
-              key={i}
-              className={`flex-1 min-w-0 ${getTimelineColor(f.score)}`}
-              style={{ height: `${f.score}%`, opacity: 0.5 + (f.score / 100) * 0.5 }}
-              title={`${Math.floor(f.time / 60)}:${String(Math.floor(f.time % 60)).padStart(2, '0')} - ${Math.round(f.score)}点`}
-            />
-          ))}
-        </div>
-        <div className="flex justify-between text-[10px] text-dark-500 mt-2 font-mono">
-          <span>0:00</span>
-          <span>
-            {Math.floor(result.frameDiffs[result.frameDiffs.length - 1]?.time / 60 || 0)}:
-            {String(Math.floor(result.frameDiffs[result.frameDiffs.length - 1]?.time % 60 || 0)).padStart(2, '0')}
-          </span>
-        </div>
-      </div>
+      {/* Enhanced Timeline */}
+      <TimelineSection frameDiffs={result.frameDiffs} />
     </div>
   );
 }

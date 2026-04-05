@@ -462,10 +462,24 @@ export default function LessonView({
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const previewVideoRef = useRef<HTMLVideoElement>(null);
+  const previewCanvasRef = useRef<HTMLCanvasElement>(null);
+  const previewContainerRef = useRef<HTMLDivElement>(null);
   const animRef = useRef<number>(0);
 
   const [phase, setPhase] = useState<Phase>('select');
-  const [levelIdx, setLevelIdx] = useState(0);
+  const [isMuted, setIsMuted] = useState(false);
+
+  // Auto-select recommended level based on overall score
+  const recommendedLevelIdx = useMemo(() => {
+    const score = result.overallScore;
+    if (score >= 88) return 3; // LEGEND
+    if (score >= 72) return 2; // MASTER
+    if (score >= 55) return 1; // RISING
+    return 0; // STARTER
+  }, [result.overallScore]);
+
+  const [levelIdx, setLevelIdx] = useState(recommendedLevelIdx);
   const [currentStopIdx, setCurrentStopIdx] = useState(0);
   const [, setCurrentUserFrame] = useState(0);
   const [showAdvice, setShowAdvice] = useState(false);
@@ -765,6 +779,68 @@ export default function LessonView({
 
   const currentStop = phase === 'paused' && currentStopIdx < stops.length ? stops[currentStopIdx] : null;
 
+  // Draw preview skeleton on the select phase
+  const drawPreview = useCallback(() => {
+    const canvas = previewCanvasRef.current;
+    const container = previewContainerRef.current;
+    const video = previewVideoRef.current;
+    if (!canvas || !container || !video) return;
+
+    const rect = container.getBoundingClientRect();
+    const cw = rect.width;
+    const ch = rect.height;
+    canvas.width = cw * window.devicePixelRatio;
+    canvas.height = ch * window.devicePixelRatio;
+    canvas.style.width = cw + 'px';
+    canvas.style.height = ch + 'px';
+
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+    ctx.clearRect(0, 0, cw, ch);
+
+    const { drawW: w, drawH: h, offsetX: ox, offsetY: oy } = getVideoRect(video, cw, ch);
+    ctx.save();
+    ctx.translate(ox, oy);
+
+    // Draw the first user frame skeleton
+    const firstFrame = userPose.frames[0] || [];
+    drawSkeleton(ctx, firstFrame, w, h, '#00d4ff', 3, 0.7);
+
+    // Draw the first ref frame as ghost
+    const firstRefFrame = refPose.frames[0] || [];
+    const mappedRef = mapRefToUserSpace(firstRefFrame, firstFrame);
+    drawSkeleton(ctx, mappedRef, w, h, '#00ff88', 2, 0.4);
+
+    ctx.restore();
+  }, [userPose, refPose]);
+
+  // Trigger preview drawing when in select phase
+  useEffect(() => {
+    if (phase !== 'select') return;
+    const video = previewVideoRef.current;
+    if (!video) return;
+
+    const onLoaded = () => {
+      video.currentTime = userStartTime;
+    };
+    const onSeeked = () => {
+      drawPreview();
+    };
+
+    video.addEventListener('loadeddata', onLoaded);
+    video.addEventListener('seeked', onSeeked);
+
+    if (video.readyState >= 2) {
+      video.currentTime = userStartTime;
+    }
+
+    return () => {
+      video.removeEventListener('loadeddata', onLoaded);
+      video.removeEventListener('seeked', onSeeked);
+    };
+  }, [phase, userStartTime, drawPreview]);
+
   // Redraw when paused (for pulse animation)
   useEffect(() => {
     if (phase !== 'paused' || !currentStop) return;
@@ -796,6 +872,29 @@ export default function LessonView({
             <p className="text-xs text-dark-500 mt-1">
               レベルが高いほど、大きなズレだけ指摘します
             </p>
+          </div>
+
+          {/* Preview */}
+          <div
+            ref={previewContainerRef}
+            className="relative rounded-xl overflow-hidden bg-black border border-dark-600 max-w-lg mx-auto w-full"
+            style={{ aspectRatio: '16 / 9' }}
+          >
+            <video
+              ref={previewVideoRef}
+              src={userVideoUrl || undefined}
+              className="w-full h-full object-contain"
+              playsInline
+              muted
+            />
+            <canvas
+              ref={previewCanvasRef}
+              className="absolute inset-0 w-full h-full pointer-events-none"
+            />
+            <div className="absolute bottom-2 left-2 bg-dark-900/70 backdrop-blur-sm rounded-lg px-2 py-1 flex items-center gap-2 text-[9px]">
+              <span className="text-neon-green/70">● お手本</span>
+              <span className="text-neon-blue">● あなた</span>
+            </div>
           </div>
 
           <div className="grid grid-cols-2 gap-2 sm:gap-3">
@@ -899,7 +998,7 @@ export default function LessonView({
               src={userVideoUrl || undefined}
               className="w-full h-full object-contain"
               playsInline
-              muted
+              muted={isMuted}
             />
             <canvas
               ref={canvasRef}
@@ -963,6 +1062,17 @@ export default function LessonView({
 
           {/* Controls */}
           <div className="flex justify-center gap-3">
+            <button
+              onClick={() => setIsMuted((v) => !v)}
+              className={`w-10 h-10 rounded-xl text-sm font-bold border transition-all flex items-center justify-center ${
+                isMuted
+                  ? 'bg-dark-700 text-dark-500 border-dark-600'
+                  : 'bg-neon-pink/20 text-neon-pink border-neon-pink/50'
+              }`}
+              title={isMuted ? '音声ON' : '音声OFF'}
+            >
+              {isMuted ? '🔇' : '🔊'}
+            </button>
             <button
               onClick={restartLesson}
               className="px-5 py-2.5 rounded-xl text-xs font-bold tracking-wider bg-dark-700 text-gray-400 border border-dark-600 hover:border-neon-pink/50 hover:text-neon-pink transition-all"

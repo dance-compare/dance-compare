@@ -1,5 +1,6 @@
 import { useRef, useState, useEffect, useCallback, useMemo } from 'react';
 import PoseOverlay from './PoseOverlay';
+import DrawingCanvas from './DrawingCanvas';
 import type { PoseData, PoseFrame, ComparisonResult } from '../types/pose';
 
 interface VideoPlayerProps {
@@ -35,6 +36,8 @@ export default function VideoPlayer({
 
   const [refDim, setRefDim] = useState({ w: 640, h: 480 });
   const [userDim, setUserDim] = useState({ w: 640, h: 480 });
+  const [drawingMode, setDrawingMode] = useState<'off' | 'ref' | 'user'>('off');
+  const [isMuted, setIsMuted] = useState(false);
 
   const updateDimensions = useCallback(() => {
     const rv = refVideoRef.current;
@@ -187,8 +190,44 @@ export default function VideoPlayer({
 
   const alignedRefForUser = getAlignedRefFrameForUser();
 
+  // Real-time match score for current frame
+  const currentMatchScore = useMemo(() => {
+    if (!result.frameDiffs.length) return null;
+    // Find closest frameDiff to current userFrameIdx
+    let best = result.frameDiffs[0];
+    let bestDist = Infinity;
+    for (const fd of result.frameDiffs) {
+      const d = Math.abs(fd.frameIndex - userFrameIdx);
+      if (d < bestDist) { bestDist = d; best = fd; }
+    }
+    return best;
+  }, [result.frameDiffs, userFrameIdx]);
+
+  function getMatchColor(score: number): string {
+    if (score >= 90) return 'text-neon-green';
+    if (score >= 70) return 'text-neon-blue';
+    if (score >= 50) return 'text-neon-yellow';
+    return 'text-neon-pink';
+  }
+
+  function getMatchBg(score: number): string {
+    if (score >= 90) return 'border-neon-green/40 bg-neon-green/10';
+    if (score >= 70) return 'border-neon-blue/40 bg-neon-blue/10';
+    if (score >= 50) return 'border-neon-yellow/40 bg-neon-yellow/10';
+    return 'border-neon-pink/40 bg-neon-pink/10';
+  }
+
+  // Timeline progress ratio
+  const timelineProgress = useMemo(() => {
+    if (!result.frameDiffs.length) return 0;
+    const lastFrame = result.frameDiffs[result.frameDiffs.length - 1].frameIndex;
+    if (lastFrame <= 0) return 0;
+    return Math.min(1, userFrameIdx / lastFrame);
+  }, [result.frameDiffs, userFrameIdx]);
+
   return (
     <div className="flex flex-col gap-4">
+      <div className="text-xs font-bold tracking-[0.15em] text-neon-yellow mb-1">COMPARE PLAY</div>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
         {/* Reference video */}
         <div>
@@ -209,7 +248,7 @@ export default function VideoPlayer({
               className="w-full h-full object-contain"
               style={{ transform: `scale(${refZoom})`, transformOrigin: 'center center' }}
               playsInline
-              muted
+              muted={isMuted}
               onLoadedMetadata={updateDimensions}
             />
             <PoseOverlay
@@ -217,6 +256,12 @@ export default function VideoPlayer({
               color="#00ff88"
               width={refDim.w}
               height={refDim.h}
+              zoom={refZoom}
+            />
+            <DrawingCanvas
+              videoWidth={refDim.w}
+              videoHeight={refDim.h}
+              isActive={drawingMode === 'ref'}
               zoom={refZoom}
             />
           </div>
@@ -252,7 +297,86 @@ export default function VideoPlayer({
               height={userDim.h}
               zoom={userZoom}
             />
+            <DrawingCanvas
+              videoWidth={userDim.w}
+              videoHeight={userDim.h}
+              isActive={drawingMode === 'user'}
+              zoom={userZoom}
+            />
+            {/* Real-time match % badge */}
+            {currentMatchScore && (
+              <div className={`absolute top-2 right-2 z-30 rounded-lg border px-2.5 py-1.5 backdrop-blur-sm transition-all ${getMatchBg(currentMatchScore.score)}`}>
+                <div className={`text-xl sm:text-2xl font-black tabular-nums ${getMatchColor(currentMatchScore.score)}`}>
+                  {Math.round(currentMatchScore.score)}
+                  <span className="text-xs font-bold">%</span>
+                </div>
+                <div className="text-[9px] text-dark-500 tracking-wider text-center">MATCH</div>
+              </div>
+            )}
           </div>
+        </div>
+      </div>
+
+      {/* Mini timeline with playhead */}
+      <div className="bg-dark-800 rounded-xl border border-dark-600 p-3">
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-xs font-bold tracking-[0.15em] text-dark-500">MATCH TIMELINE</span>
+          {currentMatchScore && (
+            <span className={`text-xs font-bold tabular-nums ${getMatchColor(currentMatchScore.score)}`}>
+              {Math.round(currentMatchScore.score)}% MATCH
+            </span>
+          )}
+        </div>
+        <div className="relative">
+          {/* Timeline bars */}
+          <div className="flex items-end h-10 gap-px rounded overflow-hidden">
+            {result.frameDiffs.map((f, i) => {
+              const isActive = currentMatchScore && Math.abs(f.frameIndex - currentMatchScore.frameIndex) <= 1;
+              return (
+                <div
+                  key={i}
+                  className="flex-1 min-w-0 rounded-t-sm transition-opacity"
+                  style={{
+                    height: `${f.score}%`,
+                    opacity: isActive ? 1 : 0.5 + (f.score / 100) * 0.5,
+                    backgroundColor:
+                      f.score >= 90 ? '#00ff88' :
+                      f.score >= 70 ? '#00d4ff' :
+                      f.score >= 50 ? '#ffe600' : '#ff2d78',
+                  }}
+                />
+              );
+            })}
+          </div>
+          {/* Playhead indicator */}
+          <div
+            className="absolute top-0 w-0.5 h-full bg-white/80 pointer-events-none transition-[left] duration-100"
+            style={{ left: `${timelineProgress * 100}%` }}
+          />
+        </div>
+        {/* Time labels */}
+        <div className="flex justify-between text-[10px] text-dark-500 mt-1.5 font-mono">
+          <span>0:00</span>
+          <span>
+            {result.frameDiffs.length > 0
+              ? `${Math.floor(result.frameDiffs[result.frameDiffs.length - 1].time / 60)}:${String(Math.floor(result.frameDiffs[result.frameDiffs.length - 1].time % 60)).padStart(2, '0')}`
+              : '0:00'}
+          </span>
+        </div>
+        {/* Color legend */}
+        <div className="flex gap-3 mt-2 justify-center">
+          <span className="flex items-center gap-1 text-[9px] text-dark-500">
+            <span className="w-2 h-2 rounded-full bg-neon-green" /> 90%+
+          </span>
+          <span className="flex items-center gap-1 text-[9px] text-dark-500">
+            <span className="w-2 h-2 rounded-full bg-neon-blue" /> 70%+
+          </span>
+          <span className="flex items-center gap-1 text-[9px] text-dark-500">
+            <span className="w-2 h-2 rounded-full bg-neon-yellow" /> 50%+
+          </span>
+          <span className="flex items-center gap-1 text-[9px] text-dark-500">
+            <span className="w-2 h-2 rounded-full bg-neon-pink" /> &lt;50%
+          </span>
         </div>
       </div>
 
@@ -315,6 +439,17 @@ export default function VideoPlayer({
       <div className="flex flex-col items-center gap-3">
         <div className="flex gap-3">
           <button
+            onClick={() => setIsMuted((v) => !v)}
+            className={`w-10 h-10 sm:w-11 sm:h-11 rounded-xl text-sm font-bold border transition-all flex items-center justify-center ${
+              isMuted
+                ? 'bg-dark-700 text-dark-500 border-dark-600'
+                : 'bg-neon-yellow/20 text-neon-yellow border-neon-yellow/50'
+            }`}
+            title={isMuted ? '音声ON' : '音声OFF'}
+          >
+            {isMuted ? '🔇' : '🔊'}
+          </button>
+          <button
             onClick={resetVideos}
             className="px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl font-bold text-xs sm:text-sm tracking-wider bg-dark-600 text-gray-400 border border-dark-500 hover:border-neon-blue/50 hover:text-neon-blue transition-all"
           >
@@ -330,6 +465,46 @@ export default function VideoPlayer({
           >
             {isPlaying ? 'PAUSE' : 'PLAY'}
           </button>
+          {/* Drawing mode toggle */}
+          <div className="relative">
+            <button
+              onClick={() =>
+                setDrawingMode((prev) => (prev === 'off' ? 'ref' : 'off'))
+              }
+              className={`px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl font-bold text-xs sm:text-sm tracking-wider transition-all ${
+                drawingMode !== 'off'
+                  ? 'bg-neon-orange/20 text-neon-orange border border-neon-orange/50'
+                  : 'bg-dark-600 text-gray-400 border border-dark-500 hover:border-neon-orange/50 hover:text-neon-orange'
+              }`}
+              title="ペン描画ツール"
+            >
+              PEN
+            </button>
+            {drawingMode !== 'off' && (
+              <div className="absolute -top-10 left-1/2 -translate-x-1/2 flex gap-1 bg-dark-900/90 backdrop-blur-sm rounded-lg px-2 py-1 border border-dark-600 whitespace-nowrap">
+                <button
+                  onClick={() => setDrawingMode('ref')}
+                  className={`text-[10px] font-bold tracking-wider px-2 py-0.5 rounded ${
+                    drawingMode === 'ref'
+                      ? 'text-neon-green bg-neon-green/10'
+                      : 'text-gray-500 hover:text-gray-300'
+                  }`}
+                >
+                  REF
+                </button>
+                <button
+                  onClick={() => setDrawingMode('user')}
+                  className={`text-[10px] font-bold tracking-wider px-2 py-0.5 rounded ${
+                    drawingMode === 'user'
+                      ? 'text-neon-blue bg-neon-blue/10'
+                      : 'text-gray-500 hover:text-gray-300'
+                  }`}
+                >
+                  YOU
+                </button>
+              </div>
+            )}
+          </div>
         </div>
         <div className="flex flex-wrap justify-center gap-3 sm:gap-4 text-[10px] tracking-wider">
           <span className="text-neon-green">GREEN = お手本</span>

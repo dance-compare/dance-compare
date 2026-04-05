@@ -4,9 +4,15 @@ import VideoPlayer from './components/VideoPlayer';
 import ResultView from './components/ResultView';
 import OverlayView from './components/OverlayView';
 import LessonView from './components/LessonView';
+import GuidePage from './components/GuidePage';
+import SkillUpView from './components/SkillUpView';
+import HistoryView from './components/HistoryView';
+import CommunityView from './components/CommunityView';
+import TeamView from './components/TeamView';
 import { extractPoseFromVideo } from './lib/poseEstimation';
 import { compareDances } from './lib/comparison';
 import { findMatchingStart } from './lib/findMatchStart';
+import { addHistoryEntry } from './lib/history';
 import type { PoseData, ComparisonResult } from './types/pose';
 
 type AppState = 'input' | 'analyzing' | 'result';
@@ -21,6 +27,10 @@ function App() {
   const [userReady, setUserReady] = useState(false);
   const [refVideoUrl, setRefVideoUrl] = useState<string | null>(null);
   const [userVideoUrl, setUserVideoUrl] = useState<string | null>(null);
+  const [showGuide, setShowGuide] = useState(false);
+  const [showHistory, setShowHistory] = useState(false);
+  const [showCommunity, setShowCommunity] = useState(false);
+  const [showTeam, setShowTeam] = useState(false);
   const [refStartTime, setRefStartTime] = useState(0);
   const [userStartTime, setUserStartTime] = useState(0);
 
@@ -84,6 +94,9 @@ function App() {
       const compResult = compareDances(trimmedRef, trimmedUser);
       setResult(compResult);
 
+      // Save to history
+      addHistoryEntry(compResult);
+
       // Save start times for playback
       setRefStartTime(refStartSec);
       setUserStartTime(userStartSec);
@@ -127,20 +140,92 @@ function App() {
               <p className="text-[10px] text-dark-500 tracking-widest uppercase">Compare & Improve</p>
             </div>
           </div>
-          {state === 'result' && (
+          <div className="flex items-center gap-3">
+            {state === 'result' && (
+              <button
+                onClick={reset}
+                className="px-4 py-2 rounded-lg border border-dark-500 text-sm text-gray-400 hover:border-neon-pink hover:text-neon-pink transition-all"
+              >
+                New Session
+              </button>
+            )}
             <button
-              onClick={reset}
-              className="px-4 py-2 rounded-lg border border-dark-500 text-sm text-gray-400 hover:border-neon-pink hover:text-neon-pink transition-all"
+              onClick={() => { setShowTeam((v) => !v); setShowCommunity(false); setShowHistory(false); setShowGuide(false); }}
+              className={`h-9 px-2 rounded-lg border text-[10px] font-bold tracking-wider transition-all ${
+                showTeam
+                  ? 'bg-neon-orange/20 text-neon-orange border-neon-orange/50'
+                  : 'border-dark-500 text-dark-500 hover:border-neon-orange hover:text-neon-orange'
+              }`}
+              title="チーム・スクール"
             >
-              New Session
+              TEAM
             </button>
-          )}
+            <button
+              onClick={() => { setShowCommunity((v) => !v); setShowTeam(false); setShowHistory(false); setShowGuide(false); }}
+              className={`h-9 px-2 rounded-lg border text-[10px] font-bold tracking-wider transition-all ${
+                showCommunity
+                  ? 'bg-neon-pink/20 text-neon-pink border-neon-pink/50'
+                  : 'border-dark-500 text-dark-500 hover:border-neon-pink hover:text-neon-pink'
+              }`}
+              title="コミュニティ"
+            >
+              VS
+            </button>
+            <button
+              onClick={() => { setShowHistory((v) => !v); setShowTeam(false); setShowGuide(false); setShowCommunity(false); }}
+              className={`w-9 h-9 rounded-lg border text-[10px] font-bold tracking-wider transition-all ${
+                showHistory
+                  ? 'bg-neon-blue/20 text-neon-blue border-neon-blue/50'
+                  : 'border-dark-500 text-dark-500 hover:border-neon-blue hover:text-neon-blue'
+              }`}
+              title="練習履歴"
+            >
+              LOG
+            </button>
+            <button
+              onClick={() => { setShowGuide((v) => !v); setShowTeam(false); setShowHistory(false); setShowCommunity(false); }}
+              className={`w-9 h-9 rounded-lg border text-sm font-bold transition-all ${
+                showGuide
+                  ? 'bg-neon-purple/20 text-neon-purple border-neon-purple/50'
+                  : 'border-dark-500 text-dark-500 hover:border-neon-blue hover:text-neon-blue'
+              }`}
+              title="使い方ガイド"
+            >
+              ?
+            </button>
+          </div>
         </div>
       </header>
 
       <main className="max-w-6xl mx-auto px-4 py-8 overflow-hidden">
+        {/* Guide page */}
+        {showGuide && (
+          <GuidePage onClose={() => setShowGuide(false)} />
+        )}
+
+        {/* History page */}
+        {showHistory && (
+          <HistoryView onClose={() => setShowHistory(false)} />
+        )}
+
+        {/* Community page */}
+        {showCommunity && (
+          <CommunityView
+            onClose={() => setShowCommunity(false)}
+            currentResult={result}
+          />
+        )}
+
+        {/* Team page */}
+        {showTeam && (
+          <TeamView
+            onClose={() => setShowTeam(false)}
+            currentResult={result}
+          />
+        )}
+
         {/* Hidden persistent video elements */}
-        <div className={state === 'input' ? '' : 'hidden'}>
+        <div className={state === 'input' && !showGuide && !showHistory && !showCommunity && !showTeam && !showTeam ? '' : 'hidden'}>
           <div className="flex flex-col gap-8">
             <div className="text-center py-6">
               <h2 className="text-2xl sm:text-3xl font-bold mb-3">
@@ -195,7 +280,7 @@ function App() {
         </div>
 
         {/* Analyzing state */}
-        {state === 'analyzing' && (
+        {state === 'analyzing' && !showGuide && !showHistory && !showCommunity && !showTeam && (
           <div className="flex flex-col items-center gap-8 py-20">
             <div className="relative w-24 h-24">
               <div className="absolute inset-0 rounded-full border-2 border-dark-600" />
@@ -244,9 +329,10 @@ function App() {
         )}
 
         {/* Result state */}
-        {state === 'result' && result && refPose && userPose && (
+        {state === 'result' && result && refPose && userPose && !showGuide && !showHistory && !showCommunity && !showTeam && (
           <div className="flex flex-col gap-8">
             <ResultView result={result} />
+            <SkillUpView result={result} />
             <LessonView
               userPose={userPose}
               refPose={refPose}
@@ -275,7 +361,7 @@ function App() {
         )}
       </main>
 
-      <footer className="border-t border-dark-700 mt-16 py-6 text-center text-dark-500 text-xs">
+      <footer className="border-t border-dark-700 mt-4 py-6 text-center text-dark-500 text-xs">
         DANCE SCORE - Powered by MediaPipe AI
       </footer>
     </div>

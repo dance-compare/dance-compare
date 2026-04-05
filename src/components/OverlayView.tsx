@@ -150,7 +150,8 @@ export default function OverlayView({
 
   const [isPlaying, setIsPlaying] = useState(false);
   const [frameIdx, setFrameIdx] = useState(0);
-  const [speed, setSpeed] = useState(1.0);
+  const [speed, setSpeed] = useState(0.5);
+  const [isMuted, setIsMuted] = useState(false);
   const [showRef, setShowRef] = useState(true);
   const [showUser, setShowUser] = useState(true);
   const [offsetFrames, setOffsetFrames] = useState(0); // frame offset for user
@@ -300,7 +301,7 @@ export default function OverlayView({
       <div className="text-xs font-bold tracking-[0.15em] text-neon-purple mb-1">SKELETON OVERLAY</div>
 
       {/* Hidden videos for audio sync */}
-      <video ref={refVideoRef} src={refVideoUrl || undefined} className="hidden" playsInline muted />
+      <video ref={refVideoRef} src={refVideoUrl || undefined} className="hidden" playsInline muted={isMuted} />
       <video ref={userVideoRef} src={userVideoUrl || undefined} className="hidden" playsInline muted />
 
       {/* Canvas */}
@@ -405,8 +406,19 @@ export default function OverlayView({
         </div>
       </div>
 
-      {/* Play button */}
-      <div className="flex justify-center">
+      {/* Play button + Mute */}
+      <div className="flex justify-center gap-3">
+        <button
+          onClick={() => setIsMuted((v) => !v)}
+          className={`w-10 h-10 rounded-xl text-sm font-bold border transition-all flex items-center justify-center ${
+            isMuted
+              ? 'bg-dark-700 text-dark-500 border-dark-600'
+              : 'bg-neon-purple/20 text-neon-purple border-neon-purple/50'
+          }`}
+          title={isMuted ? '音声ON' : '音声OFF'}
+        >
+          {isMuted ? '🔇' : '🔊'}
+        </button>
         <button
           onClick={togglePlay}
           className={`px-6 sm:px-8 py-2.5 sm:py-3 rounded-xl font-bold text-xs sm:text-sm tracking-wider transition-all ${
